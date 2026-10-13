@@ -74,12 +74,6 @@ def create_app(settings: Settings | None = None, broker=None, repository=None) -
             raise HTTPException(status_code=404, detail="Trade not found")
         return trade
 
-    @application.delete(f"{prefix}/trades/{{trade_id}}", status_code=204)
-    def delete_trade(trade_id: str, service: TradingService = Depends(get_service)):
-        if not service.delete_trade(trade_id):
-            raise HTTPException(status_code=404, detail="Trade not found")
-        return None
-
     @application.post(f"{prefix}/trades/{{trade_id}}/close", response_model=CloseTradeResponse)
     def close_trade(trade_id: str, service: TradingService = Depends(get_service)):
         trade = service.close_trade(trade_id)
