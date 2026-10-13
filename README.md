@@ -8,7 +8,6 @@ A Python/FastAPI scaffold with four independent trade boards (`turbo`, `option`,
 
 - Separate board routers: `/api/v1/boards/turbo`, `/option`, `/binary`, `/margin`.
 - Shared order, storage, mock market-data, and strategy services.
-- `DELETE /api/v1/trades/{trade_id}` permanently removes only that trade's SQLite row and its stored values; unrelated rows remain, and a later creation starts with a fresh row.
 - Four currently supported trade types: `turbo`, `option`, `binary`, and `margin`.
 - Configure the strategy symbol freely (subject to the app's symbol-character validation); there is no built-in currency-pair allowlist. The simulator generates synthetic candles for any accepted symbol—it does not confirm that the symbol exists at IQ Option.
 - Choose `ACCOUNT_MODE=demo` or `ACCOUNT_MODE=real` in `.env`. Demo means local simulation only. Real mode fails closed until a secure supported adapter is implemented and reviewed.
@@ -55,7 +54,7 @@ MAX_STAKE=1.00
 
 - `GET /api/v1/health`, `GET /api/v1/config`, `GET /api/v1/boards`
 - For each board, `GET /api/v1/boards/{board}/candles`, `POST /api/v1/boards/{board}/signal`, and `POST /api/v1/boards/{board}/trades`.
-- `GET /api/v1/trades`, `GET /api/v1/trades/{trade_id}`, `DELETE /api/v1/trades/{trade_id}` (permanently removes the database entry), `POST /api/v1/trades/{trade_id}/close`, `PUT /api/v1/trades/{trade_id}/risk` (margin board only).
+- `GET /api/v1/trades`, `GET /api/v1/trades/{trade_id}`, `POST /api/v1/trades/{trade_id}/close`, `PUT /api/v1/trades/{trade_id}/risk` (margin board only).
 - `GET /api/v1/automation/status`, `POST /api/v1/automation/start`, `POST /api/v1/automation/stop`.
 
 The API accepts `buy`/`sell`. The community docs describe binary/turbo calls as call/put; mapping this scaffold to any future official broker SDK must be explicitly reviewed rather than assumed.
