@@ -33,6 +33,11 @@ class TradeRepository:
             row = connection.execute("SELECT payload FROM trades WHERE trade_id = ?", (trade_id,)).fetchone()
         return Trade.model_validate_json(row["payload"]) if row else None
 
+    def delete(self, trade_id: str) -> bool:
+        with self._connect() as connection:
+            cursor = connection.execute("DELETE FROM trades WHERE trade_id = ?", (trade_id,))
+        return cursor.rowcount > 0
+
     def list(self, board: BoardName | None = None, status: TradeStatus | None = None) -> list[Trade]:
         query = "SELECT payload FROM trades WHERE 1=1"
         params: list[str] = []

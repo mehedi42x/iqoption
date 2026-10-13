@@ -84,6 +84,9 @@ class TradingService:
     def list_trades(self, board: BoardName | None = None, status: TradeStatus | None = None) -> list[Trade]:
         return self.repository.list(board=board, status=status)
 
+    def delete_trade(self, trade_id: str) -> bool:
+        return self.repository.delete(trade_id)
+
     def close_trade(self, trade_id: str) -> Trade | None:
         stored = self.repository.get(trade_id)
         if stored is None:
