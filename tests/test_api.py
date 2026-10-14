@@ -55,6 +55,26 @@ def test_config_selects_demo_pair_and_supported_trade_type(tmp_path):
     assert trade.json()["symbol"] == "USD/JPY-OTC"
 
 
+def test_pair_text_selects_paper_symbol_without_platform_id(tmp_path):
+    client = TestClient(make_app(tmp_path, trading_enabled=True))
+    symbol = "EUR/USD-OTC"
+
+    candles = client.get(
+        "/api/v1/boards/binary/candles",
+        params={"symbol": symbol, "count": 4},
+    )
+    assert candles.status_code == 200
+    assert len(candles.json()) == 4
+
+    trade = client.post("/api/v1/boards/binary/trades", json={
+        "symbol": symbol, "side": "buy", "amount": 1.0,
+    })
+    assert trade.status_code == 201
+    assert trade.json()["symbol"] == symbol
+    assert trade.json()["metadata"]["execution"] == "paper"
+    assert "asset_id" not in trade.json()
+
+
 def test_trade_gate_tracking_and_close(tmp_path):
     client = TestClient(make_app(tmp_path, trading_enabled=True))
     payload = {"symbol": "EURUSD", "side": "buy", "amount": 1.0}
