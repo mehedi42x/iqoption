@@ -28,6 +28,25 @@ python -m app
 
 Open `http://127.0.0.1:8000/docs` for the API explorer. The service binds to localhost by default; do not expose it to a public network without adding authentication and reviewing deployment security.
 
+## Termux (Android)
+
+Install Termux from [F-Droid](https://f-droid.org/packages/com.termux/) or the [official GitHub releases](https://github.com/termux/termux-app/releases). In Termux:
+
+```sh
+pkg update && pkg upgrade -y
+pkg install -y git
+git clone https://github.com/mehedi42x/iqoption.git
+cd iqoption
+bash scripts/termux-setup.sh
+cp .env.example .env
+. .venv/bin/activate
+python -m app
+```
+
+Open `http://127.0.0.1:8000/docs` in a browser on the same phone. Keep the default loopback host; do not expose this unauthenticated API to the internet. Stop the server with `Ctrl+C`. To install test tools as well, run `bash scripts/termux-setup.sh --with-dev`, then `. .venv/bin/activate` and `python -m pytest`.
+
+The setup script installs Termux Python and the Rust/native build tools needed if a dependency such as `pydantic-core` has to build from source on Android. That build may take time and is device-dependent. The project requires Python 3.11 or newer; the Termux package version can change, so check `python --version` if installation fails. Dependencies remain declared in `pyproject.toml`; the script installs into a project-local virtual environment and does not change Termux's system Python packages.
+
 ## Configuration
 
 `.env.example` is a template. Copy it to `.env`; `.env` is gitignored and must stay on your machine. IQ Option credential fields are blank placeholders and are not consumed. Never commit real credentials, tokens, account IDs, logs, or database files.
@@ -35,8 +54,8 @@ Open `http://127.0.0.1:8000/docs` for the API explorer. The service binds to loc
 ```dotenv
 ACCOUNT_MODE=demo                 # demo or real; real intentionally fails closed
 BROKER_MODE=paper                 # local simulator only
-TRADE_TYPE=binary                # turbo, option, binary, or margin
-STRATEGY_SYMBOL=EURUSD            # e.g. USD/JPY-OTC; no pair allowlist
+TRADE_TYPE=binary                 # turbo, option, binary, or margin
+STRATEGY_SYMBOL=EURUSD             # e.g. USD/JPY-OTC; no pair allowlist
 TRADING_ENABLED=false
 AUTO_TRADING_ENABLED=false
 MAX_STAKE=1.00
@@ -59,6 +78,14 @@ MAX_STAKE=1.00
 
 The API accepts `buy`/`sell`. The community docs describe binary/turbo calls as call/put; mapping this scaffold to any future official broker SDK must be explicitly reviewed rather than assumed.
 
+## Currency-pair input and IDs
+
+Use the pair text directly, for example `EURUSD`, `EUR/USD`, or `USD/JPY-OTC`; no numeric ID is needed by this project's paper simulator. The same `symbol` field selects the symbol for candles, signals, manual paper trades, and the configured automation strategy. A regression test covers passing a pair string without an ID. This is **not** a broker market lookup: paper candles are synthetic, and the app does not verify that a pair exists or is currently tradable at IQ Option. There is deliberately no hardcoded IQ Option asset-ID table—the project has no verified broker adapter or live asset catalog, and stale/product-specific IDs must not be presented as verified or used to place orders.
+
+## WebSocket status
+
+This repository currently contains no WebSocket client, server route, broker endpoint, or WebSocket protocol/subprotocol configuration. Therefore there is no IQ Option WebSocket connection to test, and this update does not claim that any broker WebSocket protocol works. RFC 6455 defines the WebSocket transport; application subprotocols are endpoint-specific, not a universal list that can be tested without a specified server. Uvicorn's optional `standard` extras were removed because this HTTP-only scaffold does not use them and their extra native dependencies are unnecessary for Termux.
+
 ## Tests
 
 ```bash
@@ -69,6 +96,9 @@ All tests use the local simulator and deterministic candles. They do not need `.
 
 ## Integration status and references
 
+- Termux Python installation uses `pkg install python`; see the [Termux Python guide](https://wiki.termux.com/wiki/Python) and [Termux app installation notes](https://github.com/termux/termux-app).
+- Uvicorn documents its minimal install and optional `standard` dependencies on [PyPI](https://pypi.org/project/uvicorn/).
+- WebSocket transport and endpoint-selected subprotocol behavior are specified in [RFC 6455](https://www.rfc-editor.org/rfc/rfc6455.html).
 - Community Python client README: <https://github.com/iqoptionapi/iqoptionapi> (calls itself unofficial and warns against using a real account).
 - The previously inspected community client source disables TLS verification, so it is intentionally excluded.
 - Community documentation lists distinct order/data operations for binary/digital and forex/futures, including stop-loss/take-profit fields for some products. That does not establish a broker-supported or secure API; this scaffold makes no live capability guarantee.
